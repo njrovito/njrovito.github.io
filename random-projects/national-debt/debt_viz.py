@@ -77,7 +77,7 @@ def parse_party_json(party_json):
 
     print(party_data.head())
     
-    party_data.sort_values(by='record_date', ascending=True, inplace=True)\
+    party_data.sort_values(by='record_date', ascending=True)
     
     return party_data
 
@@ -98,7 +98,7 @@ def parse_debt_json(debt_json):
 
 
     normalized_data = pd.json_normalize(debt_data['data'])
-    normalized_data.sort_values(by='record_date', ascending=True, inplace=True)
+    normalized_data.sort_values(by='record_date', ascending=True)
     normalized_data['debt_outstanding_amt'] = pd.to_numeric(normalized_data['debt_outstanding_amt'], errors='raise').astype(float)
     
     check_df_for_nan(normalized_data)

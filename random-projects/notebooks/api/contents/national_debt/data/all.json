@@ -2,7 +2,7 @@
   "content": [
     {
       "content": null,
-      "created": "2026-11-01T20:26:56.917398Z",
+      "created": "2026-11-01T20:39:07.723202Z",
       "format": null,
       "hash": null,
       "hash_algorithm": null,
@@ -16,7 +16,7 @@
     },
     {
       "content": null,
-      "created": "2026-11-01T20:26:56.917398Z",
+      "created": "2026-11-01T20:39:07.723202Z",
       "format": null,
       "hash": null,
       "hash_algorithm": null,
@@ -30,7 +30,7 @@
     },
     {
       "content": null,
-      "created": "2026-11-01T20:26:56.917398Z",
+      "created": "2026-11-01T20:39:07.723202Z",
       "format": null,
       "hash": null,
       "hash_algorithm": null,
@@ -44,7 +44,7 @@
     },
     {
       "content": null,
-      "created": "2026-11-01T20:26:56.917398Z",
+      "created": "2026-11-01T20:39:07.723202Z",
       "format": null,
       "hash": null,
       "hash_algorithm": null,
@@ -57,11 +57,11 @@
       "writable": true
     }
   ],
-  "created": "2026-11-01T20:26:56.917398Z",
+  "created": "2026-11-01T20:39:07.723202Z",
   "format": "json",
   "hash": null,
   "hash_algorithm": null,
-  "last_modified": "2026-11-01T20:26:56.917398Z",
+  "last_modified": "2026-11-01T20:39:07.723202Z",
   "mimetype": null,
   "name": "data",
   "path": "national_debt/data",
