@@ -7,6 +7,8 @@ which polical party has most sway in economic policy.
 
 This small demo shows the national debt over time, colored by the POTUS's political party. This came from a recent discussion about ***which party has done more for the national debt***. I've heard D/R both claim their party does better with spending... So I plotted the national debt over the years. We all know the debt has been monotonically increasing, and has increased rapidly since the late 90s. At first glance, it can be hard to see which party has been worse (let's be honest, they're both bad), so I also plotted the derivative of the debt with respect to time. When the derivative is negative, the debt is decreasing. You'll have to go pretty far back in years to see that (colored cyan).
 
+Source code is found [here](https://github.com/njrovito/njrovito.github.io/tree/main/random-projects/national-debt). 
+
 ---
 
 ## SOURCES: 
