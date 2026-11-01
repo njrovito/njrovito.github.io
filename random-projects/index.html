@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Projects</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6e6e6e;
+    --border: #e2e2e4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15161a;
+      --surface: #1f2024;
+      --ink: #eaeaea;
+      --muted: #9a9a9a;
+      --border: #333438;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  main { max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p.subtitle { color: var(--muted); margin: 0 0 24px; }
+  ul.projects { list-style: none; padding: 0; margin: 0; }
+  ul.projects li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  ul.projects a {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  ul.projects a:hover { text-decoration: underline; }
+  ul.projects p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Random Projects</h1>
+  <p class="subtitle">Small, standalone things that don't need their own repo.</p>
+  <ul class="projects">
+    <li>
+      <a href="national-debt/">US National Debt vs. Party in Power</a>
+      <p>Total U.S. debt and its rate of change over time, shaded by which party held the presidency.</p>
+    </li>
+  </ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US National Debt vs. Party in Power</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6e6e6e;
+    --border: #e2e2e4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15161a;
+      --surface: #1f2024;
+      --ink: #eaeaea;
+      --muted: #9a9a9a;
+      --border: #333438;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Arial, sans-serif;
+  }
+  header {
+    max-width: 1100px;
+    margin: 0 auto 24px;
+  }
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+  }
+  header p {
+    color: var(--muted);
+    margin: 0;
+  }
+  .controls {
+    max-width: 1100px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .controls label { font-size: 0.9rem; color: var(--muted); }
+  .controls input {
+    width: 80px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .controls button {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .charts {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 900px) {
+    .charts { grid-template-columns: 1fr 1fr; }
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 12px;
+  }
+  .card canvas { width: 100% !important; }
+  .legend {
+    max-width: 1100px;
+    margin: 20px auto 0;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .legend span.swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+  .status {
+    max-width: 1100px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .about {
+    max-width: 700px;
+    margin: 28px auto 0;
+    line-height: 1.5;
+  }
+  .about p { margin: 0 0 12px; }
+</style>
+</head>
+<body>
+
+<header id="pageHeader">
+  <h1>US National Debt vs. Party in Power</h1>
+  <p>Total outstanding debt and its rate of change, shaded by the party holding the presidency.</p>
+</header>
+
+<div class="controls">
+  <label for="nYears">Years of history</label>
+  <input id="nYears" type="number" min="1" max="250" value="50">
+  <button id="redraw">Update</button>
+  <span id="status" class="status"></span>
+</div>
+
+<div class="charts">
+  <div class="card">
+    <h2>Total Debt Over Time</h2>
+    <canvas id="debtChart" height="260"></canvas>
+  </div>
+  <div class="card">
+    <h2>Debt Derivative Over Time (billions / year)</h2>
+    <canvas id="derivativeChart" height="260"></canvas>
+  </div>
+</div>
+
+<div id="partyLegend" class="legend"></div>
+
+<section id="about" class="about"></section>
+
+<script>
+const DEBT_JSON_PATH = "data/hst_debt.json";
+const PARTY_JSON_PATH = "data/us_party_in_power_by_year.json";
+const CONTENT_MD_PATH = "content.md";
+
+// Page text lives in content.md so it can be edited as plain markdown
+// without touching this file. A line of "---" splits it: everything above
+// becomes the page header, everything below shows under the charts.
+// Falls back to the hardcoded HTML above if missing/invalid.
+async function loadContent() {
+  try {
+    const res = await fetch(CONTENT_MD_PATH);
+    if (!res.ok) throw new Error(`Failed to load ${CONTENT_MD_PATH}: ${res.status}`);
+    const raw = await res.text();
+    const [headerMd, ...rest] = raw.split(/\n-{3,}\n/);
+    document.getElementById("pageHeader").innerHTML = marked.parse(headerMd);
+    if (rest.length) {
+      document.getElementById("about").innerHTML = marked.parse(rest.join("\n---\n"));
+    }
+  } catch (err) {
+    console.warn("content.md not loaded:", err);
+  }
+}
+
+const PARTY_COLORS = {
+  "Democratic": "#0015BC",
+  "Republican": "#E9141D",
+  "Democratic-Republican": "#6E6E6E",
+  "Federalist": "#16E220",
+  "Whig": "#F7941D",
+  "Unaffiliated": "#000000",
+  "National Union": "#8B4513",
+  "Independent": "#A9A9A9",
+  "No party": "#A9A9A9",
+};
+
+let debtChart, derivativeChart;
+
+async function loadJSON(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+  return res.json();
+}
+
+// Mirrors restrict_n_yeats() in main.py / debt_viz.py: last n years, plus
+// whatever extra years are needed to reach back to the start of the most
+// recent presidential term.
+function restrictNYears(rows, nYears) {
+  const currentYear = new Date().getFullYear();
+  const yearsSinceElection = currentYear % 4;
+  const yearsInOffice = yearsSinceElection - 1;
+  const coverage = nYears + yearsInOffice;
+  const searchYear = currentYear - coverage;
+  const cutoffYear = searchYear - 1;
+  return rows.filter(r => r.date.getFullYear() >= cutoffYear);
+}
+
+// Mirrors add_debt_derivative(): np.gradient against actual elapsed time
+// (non-uniform spacing), first-order one-sided differences at the endpoints.
+function addDerivative(rows) {
+  const n = rows.length;
+  const t = rows.map(r => r.date.getTime() / (1000 * 60 * 60 * 24 * 365.25)); // years
+  const y = rows.map(r => r.value);
+  const dydt = new Array(n);
+
+  if (n === 1) {
+    dydt[0] = 0;
+  } else {
+    dydt[0] = (y[1] - y[0]) / (t[1] - t[0]);
+    dydt[n - 1] = (y[n - 1] - y[n - 2]) / (t[n - 1] - t[n - 2]);
+    for (let i = 1; i < n - 1; i++) {
+      const hs = t[i] - t[i - 1];
+      const hd = t[i + 1] - t[i];
+      dydt[i] = (hs * hs * y[i + 1] + (hd * hd - hs * hs) * y[i] - hd * hd * y[i - 1]) /
+                (hs * hd * (hd + hs));
+    }
+  }
+  return rows.map((r, i) => ({ ...r, derivative: dydt[i] }));
+}
+
+function hexToRgba(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function buildPartyAnnotations(partyRows) {
+  const annotations = {};
+  partyRows.forEach((row, i) => {
+    const start = row.date.getTime();
+    const end = new Date(row.date);
+    end.setFullYear(end.getFullYear() + 1);
+    const color = PARTY_COLORS[row.party] || PARTY_COLORS["No party"];
+    annotations[`party${i}`] = {
+      type: "box",
+      xMin: start,
+      xMax: end.getTime(),
+      backgroundColor: hexToRgba(color, 0.3),
+      borderWidth: 0,
+      drawTime: "beforeDatasetsDraw",
+    };
+  });
+  return annotations;
+}
+
+function renderPartyLegend(partyRows) {
+  const present = [...new Set(partyRows.map(r => r.party))];
+  const el = document.getElementById("partyLegend");
+  el.innerHTML = present.map(p => {
+    const color = PARTY_COLORS[p] || PARTY_COLORS["No party"];
+    return `<span><span class="swatch" style="background:${color}"></span>${p}</span>`;
+  }).join("");
+}
+
+function makeChart(canvasId, label, points, annotations, yLabel) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+  return new Chart(ctx, {
+    type: "line",
+    data: {
+      datasets: [{
+        label,
+        data: points,
+        borderColor: "#000000",
+        borderWidth: 3,
+        pointRadius: 0,
+        tension: 0,
+      }],
+    },
+    options: {
+      responsive: true,
+      animation: false,
+      scales: {
+        x: {
+          type: "linear",
+          ticks: {
+            callback: v => new Date(v).getFullYear(),
+          },
+          title: { display: true, text: "Date" },
+        },
+        y: {
+          title: { display: true, text: yLabel },
+        },
+      },
+      plugins: {
+        legend: { display: true },
+        annotation: { annotations },
+      },
+    },
+  });
+}
+
+async function draw() {
+  const status = document.getElementById("status");
+  status.textContent = "Loading…";
+
+  const nYears = Number(document.getElementById("nYears").value) || 50;
+
+  const [debtRaw, partyRaw] = await Promise.all([
+    loadJSON(DEBT_JSON_PATH),
+    loadJSON(PARTY_JSON_PATH),
+  ]);
+
+  let debtRows = debtRaw.data
+    .map(r => ({ date: new Date(r.record_date), value: Number(r.debt_outstanding_amt) / 1e9 }))
+    .sort((a, b) => a.date - b.date);
+
+  let partyRows = partyRaw
+    .map(r => ({ date: new Date(r.record_date), party: r.party }))
+    .sort((a, b) => a.date - b.date);
+
+  debtRows = restrictNYears(debtRows, nYears);
+  partyRows = restrictNYears(partyRows, nYears);
+  debtRows = addDerivative(debtRows);
+
+  const unmapped = [...new Set(partyRows.map(r => r.party))].filter(p => !(p in PARTY_COLORS));
+  if (unmapped.length) {
+    status.textContent = `No color defined for party/parties: ${unmapped.join(", ")}`;
+    return;
+  }
+
+  const annotations = buildPartyAnnotations(partyRows);
+
+  if (debtChart) debtChart.destroy();
+  if (derivativeChart) derivativeChart.destroy();
+
+  debtChart = makeChart(
+    "debtChart", "Total Debt",
+    debtRows.map(r => ({ x: r.date.getTime(), y: r.value })),
+    annotations, "Total Debt (billions)"
+  );
+  derivativeChart = makeChart(
+    "derivativeChart", "d(Debt)/d(Time) [billions/year]",
+    debtRows.map(r => ({ x: r.date.getTime(), y: r.derivative })),
+    annotations, "Debt Derivative (billions/year)"
+  );
+
+  renderPartyLegend(partyRows);
+  status.textContent = `${debtRows.length} debt records, ${partyRows.length} years shown.`;
+}
+
+document.getElementById("redraw").addEventListener("click", draw);
+loadContent();
+draw().catch(err => {
+  document.getElementById("status").textContent = `Error: ${err.message}`;
+  console.error(err);
+});
+</script>
+
+</body>
+</html>

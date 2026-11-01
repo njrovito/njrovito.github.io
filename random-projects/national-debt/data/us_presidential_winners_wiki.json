@@ -1,0 +1,302 @@
+[
+  {
+    "record_year":1788,
+    "winner":"George Washington",
+    "party":"Independent"
+  },
+  {
+    "record_year":1792,
+    "winner":"George Washington",
+    "party":"Independent"
+  },
+  {
+    "record_year":1796,
+    "winner":"John Adams",
+    "party":"Federalist"
+  },
+  {
+    "record_year":1800,
+    "winner":"Thomas Jefferson",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1804,
+    "winner":"Thomas Jefferson",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1808,
+    "winner":"James Madison",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1812,
+    "winner":"James Madison",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1816,
+    "winner":"James Monroe",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1820,
+    "winner":"James Monroe",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1824,
+    "winner":"John Quincy Adams",
+    "party":"Democratic-Republican"
+  },
+  {
+    "record_year":1828,
+    "winner":"Andrew Jackson",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1832,
+    "winner":"Andrew Jackson",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1836,
+    "winner":"Martin Van Buren",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1840,
+    "winner":"William Henry Harrison",
+    "party":"Whig"
+  },
+  {
+    "record_year":1844,
+    "winner":"James K. Polk",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1848,
+    "winner":"Zachary Taylor",
+    "party":"Whig"
+  },
+  {
+    "record_year":1852,
+    "winner":"Franklin Pierce",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1856,
+    "winner":"James Buchanan",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1860,
+    "winner":"Abraham Lincoln",
+    "party":"Republican"
+  },
+  {
+    "record_year":1864,
+    "winner":"Abraham Lincoln",
+    "party":"Republican"
+  },
+  {
+    "record_year":1868,
+    "winner":"Ulysses S. Grant",
+    "party":"Republican"
+  },
+  {
+    "record_year":1872,
+    "winner":"Ulysses S. Grant",
+    "party":"Republican"
+  },
+  {
+    "record_year":1876,
+    "winner":"Rutherford B. Hayes",
+    "party":"Republican"
+  },
+  {
+    "record_year":1880,
+    "winner":"James A. Garfield",
+    "party":"Republican"
+  },
+  {
+    "record_year":1884,
+    "winner":"Grover Cleveland",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1888,
+    "winner":"Benjamin Harrison",
+    "party":"Republican"
+  },
+  {
+    "record_year":1892,
+    "winner":"Grover Cleveland",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1896,
+    "winner":"William McKinley",
+    "party":"Republican"
+  },
+  {
+    "record_year":1900,
+    "winner":"William McKinley",
+    "party":"Republican"
+  },
+  {
+    "record_year":1904,
+    "winner":"Theodore Roosevelt",
+    "party":"Republican"
+  },
+  {
+    "record_year":1908,
+    "winner":"William Howard Taft",
+    "party":"Republican"
+  },
+  {
+    "record_year":1912,
+    "winner":"Woodrow Wilson",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1916,
+    "winner":"Woodrow Wilson",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1920,
+    "winner":"Warren G. Harding",
+    "party":"Republican"
+  },
+  {
+    "record_year":1924,
+    "winner":"Calvin Coolidge",
+    "party":"Republican"
+  },
+  {
+    "record_year":1928,
+    "winner":"Herbert Hoover",
+    "party":"Republican"
+  },
+  {
+    "record_year":1932,
+    "winner":"Franklin D. Roosevelt",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1936,
+    "winner":"Franklin D. Roosevelt",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1940,
+    "winner":"Franklin D. Roosevelt",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1944,
+    "winner":"Franklin D. Roosevelt",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1948,
+    "winner":"Harry S. Truman",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1952,
+    "winner":"Dwight D. Eisenhower",
+    "party":"Republican"
+  },
+  {
+    "record_year":1956,
+    "winner":"Dwight D. Eisenhower",
+    "party":"Republican"
+  },
+  {
+    "record_year":1960,
+    "winner":"John F. Kennedy",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1964,
+    "winner":"Lyndon B. Johnson",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1968,
+    "winner":"Richard Nixon",
+    "party":"Republican"
+  },
+  {
+    "record_year":1972,
+    "winner":"Richard Nixon",
+    "party":"Republican"
+  },
+  {
+    "record_year":1976,
+    "winner":"Jimmy Carter",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1980,
+    "winner":"Ronald Reagan",
+    "party":"Republican"
+  },
+  {
+    "record_year":1984,
+    "winner":"Ronald Reagan",
+    "party":"Republican"
+  },
+  {
+    "record_year":1988,
+    "winner":"George H. W. Bush",
+    "party":"Republican"
+  },
+  {
+    "record_year":1992,
+    "winner":"Bill Clinton",
+    "party":"Democratic"
+  },
+  {
+    "record_year":1996,
+    "winner":"Bill Clinton",
+    "party":"Democratic"
+  },
+  {
+    "record_year":2000,
+    "winner":"George W. Bush",
+    "party":"Republican"
+  },
+  {
+    "record_year":2004,
+    "winner":"George W. Bush",
+    "party":"Republican"
+  },
+  {
+    "record_year":2008,
+    "winner":"Barack Obama",
+    "party":"Democratic"
+  },
+  {
+    "record_year":2012,
+    "winner":"Barack Obama",
+    "party":"Democratic"
+  },
+  {
+    "record_year":2016,
+    "winner":"Donald Trump",
+    "party":"Republican"
+  },
+  {
+    "record_year":2020,
+    "winner":"Joe Biden",
+    "party":"Democratic"
+  },
+  {
+    "record_year":2024,
+    "winner":"Donald Trump",
+    "party":"Republican"
+  }
+]
