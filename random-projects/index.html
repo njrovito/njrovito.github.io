@@ -52,16 +52,46 @@
     color: var(--muted);
     font-size: 0.9rem;
   }
+  ul.projects .also {
+    margin-top: 8px;
+    font-size: 0.85rem;
+  }
+  ul.projects .also a {
+    font-size: 0.85rem;
+    font-weight: 400;
+  }
+  h2.section {
+    font-size: 1rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 28px 0 10px;
+  }
+  h2.section:first-of-type { margin-top: 0; }
 </style>
 </head>
 <body>
+<script src="/nav.js"></script>
 <main>
   <h1>Random Projects</h1>
   <p class="subtitle">Small, standalone things that don't need their own repo.</p>
+
+  <h2 class="section">Runnable notebooks</h2>
+  <p class="subtitle" style="margin-bottom:12px;">Live Python, running in your browser (no server) — edit and re-run the code.</p>
+  <ul class="projects">
+    <li>
+      <a href="notebooks/notebooks/index.html?path=national_debt/debt_viz.ipynb">US National Debt — notebook</a>
+      <p>The full data pipeline behind the chart below, as a runnable JupyterLite notebook.</p>
+    </li>
+  </ul>
+
+  <h2 class="section">Static builds</h2>
+  <p class="subtitle" style="margin-bottom:12px;">Finished, linked, view-only.</p>
   <ul class="projects">
     <li>
       <a href="national-debt/">US National Debt vs. Party in Power</a>
       <p>Total U.S. debt and its rate of change over time, shaded by which party held the presidency.</p>
+      <p class="also"><a href="notebooks/notebooks/index.html?path=national_debt/debt_viz.ipynb">→ open the notebook</a></p>
     </li>
   </ul>
 </main>
