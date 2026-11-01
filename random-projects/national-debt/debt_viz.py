@@ -1,4 +1,5 @@
 import numpy as np 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
@@ -194,6 +195,8 @@ def main():
     print(df_prty.head())
     # Map the party colors to the DataFrame
     df_prty['party_color'] = df_prty['party'].map(PARTY_COLORS_DICT)
+    # Only each party's first year gets a legend entry
+    df_prty['legend_label'] = df_prty['party'].where(~df_prty['party'].duplicated(), '_nolegend_')
     unmapped_parties = df_prty.loc[df_prty['party_color'].isna(), 'party'].unique()
     if len(unmapped_parties):
         raise ValueError(f"No color defined for party/parties: {list(unmapped_parties)}")
@@ -208,7 +211,8 @@ def main():
     for _, row in df_prty.iterrows():
         start_date = row['record_date']
         end_date = start_date + pd.DateOffset(years=1)
-        ax[0].axvspan(start_date, end_date, color=row['party_color'], alpha=0.3)
+        ax[0].axvspan(start_date, end_date, color=row['party_color'], alpha=0.3, label=row['legend_label'])
+    
 
     ax[0].set_title('Total Debt Over Time')
     ax[0].set_xlabel('Date')
@@ -217,16 +221,30 @@ def main():
     ax[0].tick_params(axis='x', rotation=45)
 
     # Plot debt derivative over time
-    ax[1].plot(df_debt['record_date'], df_debt['debt_derivative'], 
-            label=r'$\frac{d(\mathrm{Debt})}{d(\mathrm{Time})}$', 
-            color='black', 
+    # Black where non-negative, cyan where negative. Each zero crossing gets its
+    # own interpolated point so the color changes exactly at y = 0.
+    dates = mdates.date2num(df_debt['record_date'])
+    deriv = df_debt['debt_derivative'].to_numpy()
+    i = np.where(deriv[:-1] * deriv[1:] < 0)[0]
+    crossings = dates[i] - deriv[i] * (dates[i + 1] - dates[i]) / (deriv[i + 1] - deriv[i])
+    dates = mdates.num2date(np.insert(dates, i + 1, crossings))
+    deriv = np.insert(deriv, i + 1, 0.0)
+
+    ax[1].plot(dates, np.where(deriv >= 0, deriv, np.nan),
+            label=r'$\frac{d(\mathrm{Debt})}{d(\mathrm{Time})}$',
+            color='black',
             linewidth=4)
-    
+    if (deriv < 0).any():
+        ax[1].plot(dates, np.where(deriv <= 0, deriv, np.nan),
+                label=r'$\frac{d(\mathrm{Debt})}{d(\mathrm{Time})} < 0$',
+                color='cyan',
+                linewidth=4)
+
     # Add background color for each party in power
     for _, row in df_prty.iterrows():
         start_date = row['record_date']
         end_date = start_date + pd.DateOffset(years=1)
-        ax[1].axvspan(start_date, end_date, color=row['party_color'], alpha=0.3)
+        ax[1].axvspan(start_date, end_date, color=row['party_color'], alpha=0.3, label=row['legend_label'])
 
     ax[1].set_title('Debt Derivative Over Time')
     ax[1].set_xlabel('Date')

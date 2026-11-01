@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>US National Debt vs. Party in Power</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"></script>
 <style>
@@ -14,6 +14,7 @@
     --ink: #1a1a1a;
     --muted: #6e6e6e;
     --border: #e2e2e4;
+    --link: #0b63c5;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -22,6 +23,7 @@
       --ink: #eaeaea;
       --muted: #9a9a9a;
       --border: #333438;
+      --link: #4db8ff;
     }
   }
   * { box-sizing: border-box; }
@@ -116,9 +118,11 @@
   .about {
     max-width: 700px;
     margin: 28px auto 0;
+    font-size: 1.15rem;
     line-height: 1.5;
   }
   .about p { margin: 0 0 12px; }
+  .about a, .about a:visited { color: var(--link); overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
@@ -174,6 +178,8 @@ async function loadContent() {
     console.warn("content.md not loaded:", err);
   }
 }
+
+const NEGATIVE_COLOR = "#00FFFF";
 
 const PARTY_COLORS = {
   "Democratic": "#0015BC",
@@ -256,13 +262,30 @@ function buildPartyAnnotations(partyRows) {
   return annotations;
 }
 
-function renderPartyLegend(partyRows) {
+function renderPartyLegend(partyRows, hasNegative) {
   const present = [...new Set(partyRows.map(r => r.party))];
   const el = document.getElementById("partyLegend");
   el.innerHTML = present.map(p => {
     const color = PARTY_COLORS[p] || PARTY_COLORS["No party"];
     return `<span><span class="swatch" style="background:${color}"></span>${p}</span>`;
   }).join("");
+  if (hasNegative) {
+    el.innerHTML += `<span><span class="swatch" style="background:${NEGATIVE_COLOR}"></span>Debt falling (derivative &lt; 0)</span>`;
+  }
+}
+
+// Adds an interpolated point at each zero crossing so the line changes color
+// exactly at y = 0.
+function withZeroCrossings(points) {
+  const out = [];
+  points.forEach((pt, i) => {
+    const prev = points[i - 1];
+    if (prev && prev.y * pt.y < 0) {
+      out.push({ x: prev.x - prev.y * (pt.x - prev.x) / (pt.y - prev.y), y: 0 });
+    }
+    out.push(pt);
+  });
+  return out;
 }
 
 function makeChart(canvasId, label, points, annotations, yLabel) {
@@ -277,6 +300,9 @@ function makeChart(canvasId, label, points, annotations, yLabel) {
         borderWidth: 3,
         pointRadius: 0,
         tension: 0,
+        segment: {
+          borderColor: ctx => (ctx.p0.parsed.y < 0 || ctx.p1.parsed.y < 0) ? NEGATIVE_COLOR : undefined,
+        },
       }],
     },
     options: {
@@ -343,20 +369,24 @@ async function draw() {
   );
   derivativeChart = makeChart(
     "derivativeChart", "d(Debt)/d(Time) [billions/year]",
-    debtRows.map(r => ({ x: r.date.getTime(), y: r.derivative })),
+    withZeroCrossings(debtRows.map(r => ({ x: r.date.getTime(), y: r.derivative }))),
     annotations, "Debt Derivative (billions/year)"
   );
 
-  renderPartyLegend(partyRows);
+  renderPartyLegend(partyRows, debtRows.some(r => r.derivative < 0));
   status.textContent = `${debtRows.length} debt records, ${partyRows.length} years shown.`;
 }
 
-document.getElementById("redraw").addEventListener("click", draw);
+function drawWithErrors() {
+  return draw().catch(err => {
+    document.getElementById("status").textContent = `Error: ${err.message}`;
+    console.error(err);
+  });
+}
+
+document.getElementById("redraw").addEventListener("click", drawWithErrors);
 loadContent();
-draw().catch(err => {
-  document.getElementById("status").textContent = `Error: ${err.message}`;
-  console.error(err);
-});
+drawWithErrors();
 </script>
 
 </body>
