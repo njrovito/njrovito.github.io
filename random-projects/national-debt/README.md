@@ -13,10 +13,6 @@ JSON data in `data/` directly in the browser with Chart.js and renders:
 Both charts are shaded by the party in power, with a "years of history"
 control to adjust the window.
 
-The page text (title, intro, and the blurb under the charts) comes from
-`content.md` — edit that file to change the wording. A line containing
-`---` splits it: everything above goes in the header, everything below
-renders under the charts.
 
 ### Run locally
 
