@@ -1,5 +1,4 @@
 import numpy as np 
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
@@ -223,11 +222,11 @@ def main():
     # Plot debt derivative over time
     # Black where non-negative, cyan where negative. Each zero crossing gets its
     # own interpolated point so the color changes exactly at y = 0.
-    dates = mdates.date2num(df_debt['record_date'])
+    seconds = (df_debt['record_date'] - pd.Timestamp(0)).dt.total_seconds().to_numpy()
     deriv = df_debt['debt_derivative'].to_numpy()
     i = np.where(deriv[:-1] * deriv[1:] < 0)[0]
-    crossings = dates[i] - deriv[i] * (dates[i + 1] - dates[i]) / (deriv[i + 1] - deriv[i])
-    dates = mdates.num2date(np.insert(dates, i + 1, crossings))
+    crossings = seconds[i] - deriv[i] * (seconds[i + 1] - seconds[i]) / (deriv[i + 1] - deriv[i])
+    dates = pd.to_datetime(np.insert(seconds, i + 1, crossings), unit='s')
     deriv = np.insert(deriv, i + 1, 0.0)
 
     ax[1].plot(dates, np.where(deriv >= 0, deriv, np.nan),

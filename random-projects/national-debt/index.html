@@ -146,7 +146,7 @@
     <canvas id="debtChart" height="260"></canvas>
   </div>
   <div class="card">
-    <h2>Debt Derivative Over Time (billions / year)</h2>
+    <h2>Debt Derivative Over Time</h2>
     <canvas id="derivativeChart" height="260"></canvas>
   </div>
 </div>
@@ -365,12 +365,12 @@ async function draw() {
   debtChart = makeChart(
     "debtChart", "Total Debt",
     debtRows.map(r => ({ x: r.date.getTime(), y: r.value })),
-    annotations, "Total Debt (billions)"
+    annotations, "Total Debt (Billions of Dollars)"
   );
   derivativeChart = makeChart(
-    "derivativeChart", "d(Debt)/d(Time) [billions/year]",
+    "derivativeChart", "d(Debt)/d(Time)",
     withZeroCrossings(debtRows.map(r => ({ x: r.date.getTime(), y: r.derivative }))),
-    annotations, "Debt Derivative (billions/year)"
+    annotations, "Debt Derivative (Billions of Dollars per Year)"
   );
 
   renderPartyLegend(partyRows, debtRows.some(r => r.derivative < 0));
