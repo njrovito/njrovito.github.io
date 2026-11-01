@@ -28,13 +28,6 @@ python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-### Deploy to GitHub Pages
-
-1. Push this repo to GitHub.
-2. In **Settings → Pages**, set **Source** to "Deploy from a branch",
-   branch `main`, folder `/ (root)`.
-3. The site will be published at `https://<user>.github.io/<repo>/`.
-
 ## Data pipeline (Python)
 
 - `data/scrape_wiki_electrion_winners.py` scrapes presidential election
