@@ -1,0 +1,71 @@
+{
+  "content": [
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T19:19:57.110810Z",
+      "mimetype": "application/json",
+      "name": "hst_debt.json",
+      "path": "national_debt/data/hst_debt.json",
+      "size": 16294,
+      "type": "file",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T19:25:41.052764Z",
+      "mimetype": "text/x-python",
+      "name": "scrape_wiki_electrion_winners.py",
+      "path": "national_debt/data/scrape_wiki_electrion_winners.py",
+      "size": 9005,
+      "type": "file",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T19:25:47.510183Z",
+      "mimetype": "application/json",
+      "name": "us_party_in_power_by_year.json",
+      "path": "national_debt/data/us_party_in_power_by_year.json",
+      "size": 16018,
+      "type": "file",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T19:25:47.475517Z",
+      "mimetype": "application/json",
+      "name": "us_presidential_winners_wiki.json",
+      "path": "national_debt/data/us_presidential_winners_wiki.json",
+      "size": 5485,
+      "type": "file",
+      "writable": true
+    }
+  ],
+  "created": "2026-11-01T20:26:56.917398Z",
+  "format": "json",
+  "hash": null,
+  "hash_algorithm": null,
+  "last_modified": "2026-11-01T20:26:56.917398Z",
+  "mimetype": null,
+  "name": "data",
+  "path": "national_debt/data",
+  "size": null,
+  "type": "directory",
+  "writable": true
+}

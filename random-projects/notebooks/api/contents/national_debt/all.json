@@ -1,0 +1,43 @@
+{
+  "content": [
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T20:26:56.917398Z",
+      "mimetype": null,
+      "name": "data",
+      "path": "national_debt/data",
+      "size": null,
+      "type": "directory",
+      "writable": true
+    },
+    {
+      "content": null,
+      "created": "2026-11-01T20:26:56.917398Z",
+      "format": null,
+      "hash": null,
+      "hash_algorithm": null,
+      "last_modified": "2026-11-01T20:26:54.634425Z",
+      "mimetype": null,
+      "name": "debt_viz.ipynb",
+      "path": "national_debt/debt_viz.ipynb",
+      "size": 128942,
+      "type": "notebook",
+      "writable": true
+    }
+  ],
+  "created": "2026-11-01T20:26:56.917398Z",
+  "format": "json",
+  "hash": null,
+  "hash_algorithm": null,
+  "last_modified": "2026-11-01T20:26:56.917398Z",
+  "mimetype": null,
+  "name": "national_debt",
+  "path": "national_debt",
+  "size": null,
+  "type": "directory",
+  "writable": true
+}
