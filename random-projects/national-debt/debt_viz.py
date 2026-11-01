@@ -216,7 +216,7 @@ def main():
 
     ax[0].set_title('Total Debt Over Time')
     ax[0].set_xlabel('Date')
-    ax[0].set_ylabel('Total Debt (in billions)')
+    ax[0].set_ylabel('Total Debt (Billions of Dollars)')
     ax[0].legend()
     ax[0].tick_params(axis='x', rotation=45)
 
@@ -248,7 +248,7 @@ def main():
 
     ax[1].set_title('Debt Derivative Over Time')
     ax[1].set_xlabel('Date')
-    ax[1].set_ylabel('Debt Derivative (in billions per year)')
+    ax[1].set_ylabel('Debt Derivative (Billions of Dollars per Year)')
     ax[1].legend()
     ax[1].tick_params(axis='x', rotation=45)
 
