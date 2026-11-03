@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV</title>
+<link rel="stylesheet" href="/site.css">
+<style>
+  main.cv { max-width: 850px; }
+  p.subtitle a { color: var(--ink); }
+  #cv-pages canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+  }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<main class="cv">
+  <h1>CV</h1>
+  <p class="subtitle"><a href="/cv/njrovito-cv.pdf" download>Download PDF</a></p>
+  <div id="cv-pages">
+    <noscript><p><a href="/cv/njrovito-cv.pdf">Open the PDF</a></p></noscript>
+  </div>
+</main>
+<script type="module">
+  import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs";
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
+
+  const container = document.getElementById("cv-pages");
+  try {
+    const pdf = await pdfjsLib.getDocument("/cv/njrovito-cv.pdf").promise;
+    const scale = 2 * (window.devicePixelRatio || 1) > 3 ? 3 : 2;
+    for (let n = 1; n <= pdf.numPages; n++) {
+      const page = await pdf.getPage(n);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      container.appendChild(canvas);
+      await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    }
+  } catch (e) {
+    container.innerHTML = '<p>Could not display the CV here. <a href="/cv/njrovito-cv.pdf">Open the PDF</a>.</p>';
+  }
+</script>
+</body>
+</html>

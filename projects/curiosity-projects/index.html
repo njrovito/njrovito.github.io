@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Random Projects</title>
+<title>Curiosity Projects</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"></script>
 <style>
   :root {
     --bg: #f7f7f8;
@@ -68,13 +69,18 @@
     margin: 28px 0 10px;
   }
   h2.section:first-of-type { margin-top: 0; }
+  #content { margin: 0 0 24px; line-height: 1.5; }
+  #content:empty { display: none; }
+  #content p { margin: 0 0 12px; }
 </style>
 </head>
 <body>
 <script src="/nav.js"></script>
 <main>
-  <h1>Random Projects</h1>
-  <p class="subtitle">Small, standalone things that don't need their own repo.</p>
+  <h1>Curiosity Projects</h1>
+  <p class="subtitle">Small, standalone curiosity projects that don't need their own repo.</p>
+
+  <section id="content"></section>
 
   <h2 class="section">Static builds</h2>
   <p class="subtitle" style="margin-bottom:12px;">Finished, linked, view-only.</p>
@@ -95,6 +101,18 @@
     </li>
   </ul> -->
 
-</main> 
+</main>
+<script>
+// Page text lives in content.md so it can be edited as plain markdown.
+(async () => {
+  try {
+    const res = await fetch("content.md");
+    if (!res.ok) throw new Error(`content.md: ${res.status}`);
+    document.getElementById("content").innerHTML = marked.parse(await res.text());
+  } catch (err) {
+    console.warn("content.md not loaded:", err);
+  }
+})();
+</script>
 </body>
 </html>

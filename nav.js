@@ -3,7 +3,8 @@
 (function () {
   const LINKS = [
     { href: "/about/", label: "About" },
-    { href: "/random-projects/", label: "Random Projects" },
+    { href: "/cv/", label: "CV" },
+    { href: "/projects/", label: "Projects" },
     { href: "/blog/", label: "Blog" },
   ];
 
