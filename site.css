@@ -4,6 +4,7 @@
   --ink: #1a1a1a;
   --muted: #6e6e6e;
   --border: #e2e2e4;
+  --link: #0b63c5;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -12,6 +13,7 @@
     --ink: #eaeaea;
     --muted: #9a9a9a;
     --border: #333438;
+    --link: #4db8ff;
   }
 }
 * { box-sizing: border-box; }

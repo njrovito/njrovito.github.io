@@ -6,7 +6,9 @@
 <title>US National Debt vs. Party in Power</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"></script>
+<link rel="stylesheet" href="/site.css">
 <style>
   :root {
     --bg: #f7f7f8;
@@ -14,7 +16,6 @@
     --ink: #1a1a1a;
     --muted: #6e6e6e;
     --border: #e2e2e4;
-    --link: #0b63c5;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -23,7 +24,6 @@
       --ink: #eaeaea;
       --muted: #9a9a9a;
       --border: #333438;
-      --link: #4db8ff;
     }
   }
   * { box-sizing: border-box; }
@@ -134,8 +134,10 @@
 </header>
 
 <div class="controls">
-  <label for="nYears">Years of history</label>
-  <input id="nYears" type="number" min="1" max="250" value="50">
+  <label for="startYear">From</label>
+  <input id="startYear" type="number" min="1700" max="2100">
+  <label for="endYear">To</label>
+  <input id="endYear" type="number" min="1700" max="2100">
   <button id="redraw">Update</button>
   <span id="status" class="status"></span>
 </div>
@@ -156,8 +158,13 @@
 <section id="about" class="about"></section>
 
 <script>
-const DEBT_JSON_PATH = "data/hst_debt.json";
-const PARTY_JSON_PATH = "data/us_party_in_power_by_year.json";
+// All data processing lives in debt_viz.py, run in the browser via Pyodide;
+// this page only fetches the files, calls web_payload(), and plots the result.
+const PYODIDE_FILES = [
+  "data/hst_debt.json",
+  "data/us_party_in_power_by_year.json",
+];
+const PYTHON_MODULE_PATH = "debt_viz.py";
 const CONTENT_MD_PATH = "content.md";
 
 // Page text lives in content.md so it can be edited as plain markdown
@@ -181,60 +188,26 @@ async function loadContent() {
 
 const NEGATIVE_COLOR = "#00FFFF";
 
-const PARTY_COLORS = {
-  "Democratic": "#0015BC",
-  "Republican": "#E9141D",
-  "Democratic-Republican": "#6E6E6E",
-  "Federalist": "#16E220",
-  "Whig": "#F7941D",
-  "Unaffiliated": "#000000",
-  "National Union": "#8B4513",
-  "Independent": "#A9A9A9",
-  "No party": "#A9A9A9",
-};
+let debtChart, derivativeChart, pyodide, debtViz;
 
-let debtChart, derivativeChart;
-
-async function loadJSON(path) {
+async function fetchText(path) {
   const res = await fetch(path);
   if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
-  return res.json();
+  return res.text();
 }
 
-// Mirrors restrict_n_yeats() in main.py / debt_viz.py: last n years, plus
-// whatever extra years are needed to reach back to the start of the most
-// recent presidential term.
-function restrictNYears(rows, nYears) {
-  const currentYear = new Date().getFullYear();
-  const yearsSinceElection = currentYear % 4;
-  const yearsInOffice = yearsSinceElection - 1;
-  const coverage = nYears + yearsInOffice;
-  const searchYear = currentYear - coverage;
-  const cutoffYear = searchYear - 1;
-  return rows.filter(r => r.date.getFullYear() >= cutoffYear);
-}
-
-// Mirrors add_debt_derivative(): np.gradient against actual elapsed time
-// (non-uniform spacing), first-order one-sided differences at the endpoints.
-function addDerivative(rows) {
-  const n = rows.length;
-  const t = rows.map(r => r.date.getTime() / (1000 * 60 * 60 * 24 * 365.25)); // years
-  const y = rows.map(r => r.value);
-  const dydt = new Array(n);
-
-  if (n === 1) {
-    dydt[0] = 0;
-  } else {
-    dydt[0] = (y[1] - y[0]) / (t[1] - t[0]);
-    dydt[n - 1] = (y[n - 1] - y[n - 2]) / (t[n - 1] - t[n - 2]);
-    for (let i = 1; i < n - 1; i++) {
-      const hs = t[i] - t[i - 1];
-      const hd = t[i + 1] - t[i];
-      dydt[i] = (hs * hs * y[i + 1] + (hd * hd - hs * hs) * y[i] - hd * hd * y[i - 1]) /
-                (hs * hd * (hd + hs));
-    }
+// Boots Pyodide once, copies debt_viz.py and its data files into its virtual
+// filesystem (same relative paths the script uses), and imports the module.
+async function initPython() {
+  if (debtViz) return;
+  document.getElementById("status").textContent = "Loading Python…";
+  pyodide = await loadPyodide();
+  await pyodide.loadPackage(["numpy", "pandas"]);
+  pyodide.FS.mkdir("data");
+  for (const path of [...PYODIDE_FILES, PYTHON_MODULE_PATH]) {
+    pyodide.FS.writeFile(path, await fetchText(path));
   }
-  return rows.map((r, i) => ({ ...r, derivative: dydt[i] }));
+  debtViz = pyodide.pyimport("debt_viz");
 }
 
 function hexToRgba(hex, alpha) {
@@ -246,15 +219,11 @@ function hexToRgba(hex, alpha) {
 function buildPartyAnnotations(partyRows) {
   const annotations = {};
   partyRows.forEach((row, i) => {
-    const start = row.date.getTime();
-    const end = new Date(row.date);
-    end.setFullYear(end.getFullYear() + 1);
-    const color = PARTY_COLORS[row.party] || PARTY_COLORS["No party"];
     annotations[`party${i}`] = {
       type: "box",
-      xMin: start,
-      xMax: end.getTime(),
-      backgroundColor: hexToRgba(color, 0.3),
+      xMin: row.start,
+      xMax: row.end,
+      backgroundColor: hexToRgba(row.color, 0.3),
       borderWidth: 0,
       drawTime: "beforeDatasetsDraw",
     };
@@ -263,12 +232,11 @@ function buildPartyAnnotations(partyRows) {
 }
 
 function renderPartyLegend(partyRows, hasNegative) {
-  const present = [...new Set(partyRows.map(r => r.party))];
+  const present = new Map(partyRows.map(r => [r.party, r.color]));
   const el = document.getElementById("partyLegend");
-  el.innerHTML = present.map(p => {
-    const color = PARTY_COLORS[p] || PARTY_COLORS["No party"];
-    return `<span><span class="swatch" style="background:${color}"></span>${p}</span>`;
-  }).join("");
+  el.innerHTML = [...present].map(([party, color]) =>
+    `<span><span class="swatch" style="background:${color}"></span>${party}</span>`
+  ).join("");
   if (hasNegative) {
     el.innerHTML += `<span><span class="swatch" style="background:${NEGATIVE_COLOR}"></span>Debt falling (derivative &lt; 0)</span>`;
   }
@@ -288,7 +256,7 @@ function withZeroCrossings(points) {
   return out;
 }
 
-function makeChart(canvasId, label, points, annotations, yLabel) {
+function makeChart(canvasId, label, points, annotations, yLabel, xMin, xMax) {
   const ctx = document.getElementById(canvasId).getContext("2d");
   return new Chart(ctx, {
     type: "line",
@@ -311,8 +279,10 @@ function makeChart(canvasId, label, points, annotations, yLabel) {
       scales: {
         x: {
           type: "linear",
+          min: xMin,
+          max: xMax,
           ticks: {
-            callback: v => new Date(v).getFullYear(),
+            callback: v => new Date(v).getUTCFullYear(),
           },
           title: { display: true, text: "Date" },
         },
@@ -331,31 +301,26 @@ function makeChart(canvasId, label, points, annotations, yLabel) {
 async function draw() {
   const status = document.getElementById("status");
   status.textContent = "Loading…";
+  await initPython();
 
-  const nYears = Number(document.getElementById("nYears").value) || 50;
+  const startInput = document.getElementById("startYear");
+  const endInput = document.getElementById("endYear");
+  const hasRange = startInput.value || endInput.value;
 
-  const [debtRaw, partyRaw] = await Promise.all([
-    loadJSON(DEBT_JSON_PATH),
-    loadJSON(PARTY_JSON_PATH),
-  ]);
+  // Empty inputs (first load) get Python's default range, then fill in.
+  const payload = JSON.parse(hasRange
+    ? debtViz.web_payload(startInput.value ? `${startInput.value}` : null,
+                          endInput.value ? `${endInput.value}-12-31` : null)
+    : debtViz.web_payload());
+  const debtRows = payload.debt;
+  const partyRows = payload.party;
 
-  let debtRows = debtRaw.data
-    .map(r => ({ date: new Date(r.record_date), value: Number(r.debt_outstanding_amt) / 1e9 }))
-    .sort((a, b) => a.date - b.date);
-
-  let partyRows = partyRaw
-    .map(r => ({ date: new Date(r.record_date), party: r.party }))
-    .sort((a, b) => a.date - b.date);
-
-  debtRows = restrictNYears(debtRows, nYears);
-  partyRows = restrictNYears(partyRows, nYears);
-  debtRows = addDerivative(debtRows);
-
-  const unmapped = [...new Set(partyRows.map(r => r.party))].filter(p => !(p in PARTY_COLORS));
-  if (unmapped.length) {
-    status.textContent = `No color defined for party/parties: ${unmapped.join(", ")}`;
-    return;
+  if (!hasRange) {
+    startInput.value = new Date(partyRows[0].start).getUTCFullYear();
+    endInput.value = new Date(debtRows[debtRows.length - 1].t).getUTCFullYear();
   }
+  const xMin = Date.UTC(Number(startInput.value), 0, 1);
+  const xMax = Date.UTC(Number(endInput.value) + 1, 0, 1);
 
   const annotations = buildPartyAnnotations(partyRows);
 
@@ -364,13 +329,13 @@ async function draw() {
 
   debtChart = makeChart(
     "debtChart", "Total Debt",
-    debtRows.map(r => ({ x: r.date.getTime(), y: r.value })),
-    annotations, "Total Debt (Billions of Dollars)"
+    debtRows.map(r => ({ x: r.t, y: r.value })),
+    annotations, "Total Debt (Billions of Dollars)", xMin, xMax
   );
   derivativeChart = makeChart(
     "derivativeChart", "d(Debt)/d(Time)",
-    withZeroCrossings(debtRows.map(r => ({ x: r.date.getTime(), y: r.derivative }))),
-    annotations, "Debt Derivative (Billions of Dollars per Year)"
+    withZeroCrossings(debtRows.map(r => ({ x: r.t, y: r.derivative }))),
+    annotations, "Debt Derivative (Billions of Dollars per Year)", xMin, xMax
   );
 
   renderPartyLegend(partyRows, debtRows.some(r => r.derivative < 0));

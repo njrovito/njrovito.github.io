@@ -1,20 +1,9 @@
+import argparse
+import json
+
 import numpy as np 
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
 
 import pandas as pd
-
-# Set global font sizes and weights for plots
-rcParams.update({
-    'axes.titlesize': 16,
-    'axes.labelsize': 12,
-    'xtick.labelsize': 12,
-    'ytick.labelsize': 12,
-    'legend.fontsize': 12,
-    'font.weight': 'bold',
-    'axes.titleweight': 'bold',
-    'axes.labelweight': 'bold',
-})
 
 # Constants 
 DEBT_JSON_PATH = 'data/hst_debt.json'
@@ -22,12 +11,12 @@ PARTY_JSON_PATH = 'data/us_party_in_power_by_year.json'
 
 DEM_COLOR = '#0015BC'
 REP_COLOR = '#E9141D'
-DEM_REP_COLOR = '#6E6E6E'  # Gray color for Democratic-Republican party
-FED_COLOR = "#16E220"  # Gold color for Federalist party
-WHIG_COLOR = "#F7941D"  # Orange color for Whig party
-UNAFFILIATED_COLOR = "#000000"  # Black color for Unaffiliated
-NATIONAL_UNION_COLOR = "#8B4513"  # Brown color for National Union party
-INDEPENDENT_COLOR = "#A9A9A9"  # Light gray color for Independent/no party
+DEM_REP_COLOR = '#6E6E6E'           # Gray color for Democratic-Republican party
+FED_COLOR = "#16E220"               # Gold color for Federalist party
+WHIG_COLOR = "#F7941D"              # Orange color for Whig party
+UNAFFILIATED_COLOR = "#000000"      # Black color for Unaffiliated
+NATIONAL_UNION_COLOR = "#8B4513"    # Brown color for National Union party
+INDEPENDENT_COLOR = "#A9A9A9"       # Light gray color for Independent/no party
 
 PARTY_COLORS_DICT = {
     'Democratic': DEM_COLOR,
@@ -138,6 +127,33 @@ def restrict_n_yeats(df, n_years=100):
     
     return restricted_df
 
+def restrict_date_range(df, start=None, end=None, span_years=0):
+    """
+    Restricts the DataFrame to records between start and end (inclusive).
+
+    Rows that cover a span after their record_date (party rows cover one
+    year) are kept if that span overlaps the range; set span_years to the
+    span length.
+
+    Parameters:
+    -----------
+    df (pd.DataFrame): DataFrame with a datetime 'record_date' column.
+    start, end (str or None): Dates parseable by pd.Timestamp (e.g. '1990' or
+    '1990-06-30'). None leaves that side open.
+    span_years (int): Years each row covers after its record_date.
+
+    Returns:
+    --------
+    pd.DataFrame: DataFrame restricted to the requested range.
+    """
+    df['record_date'] = pd.to_datetime(df['record_date'])
+    mask = pd.Series(True, index=df.index)
+    if start is not None:
+        mask &= df['record_date'] + pd.DateOffset(years=span_years) > pd.Timestamp(start)
+    if end is not None:
+        mask &= df['record_date'] <= pd.Timestamp(end)
+    return df[mask].copy()
+
 def convert_to_billions(df):
     """
     Converts the debt outstanding amount to billions.
@@ -178,20 +194,43 @@ def add_debt_derivative(df):
     df['debt_derivative'] = np.gradient(df['debt_outstanding_amt'], years_elapsed)
     return df
 
-def main():
+def prepare_data(start=None, end=None):
+    """
+    Loads and processes the debt and party data for plotting.
+
+    The derivative is computed on the full series and then restricted, so
+    the edges of a chosen range match the same dates in a wider plot.
+
+    Parameters:
+    -----------
+    start, end (str or None): Range bounds (see restrict_date_range). If both
+    are None, the last 50 years are used.
+
+    Returns:
+    --------
+    (pd.DataFrame, pd.DataFrame): Debt data (with 'debt_derivative') and party
+    data (with 'party_color' and 'legend_label'), restricted to the range.
+    """
     df_debt = parse_debt_json(DEBT_JSON_PATH)
     df_prty = parse_party_json(PARTY_JSON_PATH)
 
-    df_debt = restrict_n_yeats(df_debt, n_years=50)
-    df_prty = restrict_n_yeats(df_prty, n_years=50)
+    for df in (df_debt, df_prty):
+        df['record_date'] = pd.to_datetime(df['record_date'])
+    df_debt = df_debt.sort_values('record_date').reset_index(drop=True)
+    df_prty = df_prty.sort_values('record_date').reset_index(drop=True)
 
     df_debt = convert_to_billions(df_debt)
     df_debt = add_debt_derivative(df_debt)
 
+    if start or end:
+        df_debt = restrict_date_range(df_debt, start, end)
+        df_prty = restrict_date_range(df_prty, start, end, span_years=1)
+    else:
+        df_debt = restrict_n_yeats(df_debt, n_years=50)
+        df_prty = restrict_n_yeats(df_prty, n_years=50)
+    if len(df_debt) < 3:
+        raise ValueError('Fewer than 3 debt records in the requested range.')
 
-    # Assign party colors to the DataFrame based on the party in power
-
-    print(df_prty.head())
     # Map the party colors to the DataFrame
     df_prty['party_color'] = df_prty['party'].map(PARTY_COLORS_DICT)
     # Only each party's first year gets a legend entry
@@ -200,6 +239,47 @@ def main():
     if len(unmapped_parties):
         raise ValueError(f"No color defined for party/parties: {list(unmapped_parties)}")
 
+    return df_debt, df_prty
+
+def web_payload(start=None, end=None):
+    """
+    Returns prepare_data() as a JSON string for the interactive page
+    (index.html, run in the browser through Pyodide). Dates are ms since epoch.
+    """
+    df_debt, df_prty = prepare_data(start, end)
+    to_ms = lambda ts: ts.timestamp() * 1000
+    return json.dumps({
+        'debt': [{'t': to_ms(r.record_date), 'value': r.debt_outstanding_amt, 'derivative': r.debt_derivative}
+                 for r in df_debt.itertuples()],
+        'party': [{'start': to_ms(r.record_date),
+                   'end': to_ms(r.record_date + pd.DateOffset(years=1)),
+                   'party': r.party,
+                   'color': r.party_color}
+                  for r in df_prty.itertuples()],
+    })
+
+def main():
+    import matplotlib.pyplot as plt
+    from matplotlib import rcParams
+
+    # Set global font sizes and weights for plots
+    rcParams.update({
+        'axes.titlesize': 16,
+        'axes.labelsize': 12,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 12,
+        'font.weight': 'bold',
+        'axes.titleweight': 'bold',
+        'axes.labelweight': 'bold',
+    })
+
+    parser = argparse.ArgumentParser(description='Plot US debt and its derivative over a date range.')
+    parser.add_argument('--start', help="Start date, e.g. 1990 or 1990-06-30 (default: 50 years back)")
+    parser.add_argument('--end', help="End date, e.g. 2010 or 2010-12-31 (default: latest data)")
+    args = parser.parse_args()
+
+    df_debt, df_prty = prepare_data(args.start, args.end)
 
     _, ax = plt.subplots(1, 2, figsize=(12, 6))
 
@@ -251,6 +331,11 @@ def main():
     ax[1].legend()
     ax[1].tick_params(axis='x', rotation=45)
 
+
+    if args.start or args.end:
+        for a in ax:
+            a.set_xlim(pd.Timestamp(args.start) if args.start else None,
+                       pd.Timestamp(args.end) if args.end else None)
 
     plt.tight_layout()
     plt.savefig('debt_and_derivative_with_party_background.png', dpi=300)
