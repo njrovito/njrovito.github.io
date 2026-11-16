@@ -4,7 +4,7 @@ US national debt over time, overlaid with which party held the presidency.
 
 ## Website
 
-`index.html` is a static page (no build step). It loads `debt_viz.py` and the
+`index.html` is a static page. It loads `debt_viz.py` and the
 JSON in `data/` into Pyodide (Python in the browser), which does all the data
 processing; Chart.js draws the result. It renders:
 
@@ -15,18 +15,7 @@ Both charts are shaded by the party in power, with From/To year inputs to
 pick the date range. The first load downloads Pyodide, numpy, and pandas, so
 it takes a few seconds.
 
-
-### Run locally
-
-Browsers block `fetch()` against `file://` URLs, so serve the folder instead
-of opening `index.html` directly:
-
-```bash
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
-
-## Data pipeline (Python)
+## Data pipeline 
 
 - `data/scrape_wiki_electrion_winners.py` scrapes presidential election
   winners from Wikipedia and writes `data/us_presidential_winners_wiki.json`
